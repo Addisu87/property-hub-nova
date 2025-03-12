@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
@@ -9,7 +9,7 @@ const Index = () => {
         <h1 className="text-4xl font-bold mb-4">Welcome to Our Real Estate Platform</h1>
         <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">Discover your dream home today!</p>
         <Button asChild size="lg">
-          <Link href="/properties">Browse Properties</Link>
+          <Link to="/properties">Browse Properties</Link>
         </Button>
       </div>
     </div>
