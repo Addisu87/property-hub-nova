@@ -1,25 +1,45 @@
 
-export interface PropertyType {
+export type PropertyStatus = "for-sale" | "for-rent" | "sold" | "pending";
+
+export type PropertyType = "house" | "apartment" | "condo" | "townhouse" | "land";
+
+export interface Property {
   id: string;
   title: string;
+  description: string;
   price: number;
-  pricePerSqFt?: number;
+  pricePerSqft: number;
   address: string;
-  description?: string;
+  type: PropertyType;
+  status: PropertyStatus;
   bedrooms: number;
   bathrooms: number;
-  squareFeet: number;
+  area: number;
   images: string[];
-  type: "sale" | "rent";
-  isNew?: boolean;
+  featured: boolean;
+  amenities: string[];
+  yearBuilt: number;
+  createdAt: string;
 }
 
-export type UserRole = "buyer" | "seller" | "renter" | "landlord" | "agent" | "admin";
-
-export interface User {
+export interface Agent {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
-  avatar?: string;
+  phone: string;
+  photo: string;
+  title: string;
+  bio: string;
+  listings: number;
+  rating: number;
+  reviews: number;
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  content: string;
+  rating: number;
 }

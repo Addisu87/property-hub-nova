@@ -1,126 +1,96 @@
 
-import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, BedDouble, Bath, SquareFeet } from "lucide-react";
+import { HeartIcon, BedIcon, BathIcon, RulerIcon } from "lucide-react";
+import { Property } from "@/lib/types";
 
 interface PropertyCardProps {
-  id: string;
-  title: string;
-  price: number;
-  pricePerSqFt?: number;
-  address: string;
-  description?: string;
-  bedrooms: number;
-  bathrooms: number;
-  squareFeet: number;
-  images: string[];
-  type: "sale" | "rent";
-  isNew?: boolean;
-  onFavoriteToggle?: (id: string) => void;
-  isFavorite?: boolean;
+  property: Property;
 }
 
-export default function PropertyCard({
-  id,
-  title,
-  price,
-  pricePerSqFt,
-  address,
-  bedrooms,
-  bathrooms,
-  squareFeet,
-  images,
-  type,
-  isNew = false,
-  isFavorite = false,
-  onFavoriteToggle,
-}: PropertyCardProps) {
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(amount);
+export default function PropertyCard({ property }: PropertyCardProps) {
+  const {
+    id,
+    title,
+    price,
+    address,
+    bedrooms,
+    bathrooms,
+    area,
+    images,
+    status,
+  } = property;
+
+  const formatPrice = (price: number, isRent = status === "for-rent") => {
+    return isRent
+      ? `$${price.toLocaleString()}/mo`
+      : `$${price.toLocaleString()}`;
+  };
+
+  const statusColors = {
+    "for-sale": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+    "for-rent": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+    "sold": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+    "pending": "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100",
+  };
+
+  const statusLabel = {
+    "for-sale": "For Sale",
+    "for-rent": "For Rent",
+    "sold": "Sold",
+    "pending": "Pending",
   };
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md">
-      <div className="relative">
-        <Link href={`/properties/${id}`}>
-          <div className="aspect-[16/9] overflow-hidden">
-            <Image
-              src={images[0] || "/placeholder.svg"}
-              alt={title}
-              width={640}
-              height={360}
-              className="h-full w-full object-cover transition-transform hover:scale-105"
-            />
-          </div>
-        </Link>
-
-        {/* Favorite button */}
-        {onFavoriteToggle && (
-          <button
-            onClick={() => onFavoriteToggle(id)}
-            className="absolute right-3 top-3 rounded-full bg-white p-1.5 shadow-md transition-colors hover:bg-gray-100"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+    <Link href={`/properties/${id}`} className="group">
+      <div className="rounded-lg overflow-hidden border bg-card transition-all hover:shadow-md">
+        <div className="relative">
+          <Image
+            src={images[0] || "/placeholder.svg"}
+            alt={title}
+            width={500}
+            height={300}
+            className="h-56 w-full object-cover transition-transform group-hover:scale-105"
+          />
+          <Badge
+            variant="outline"
+            className={`absolute top-3 left-3 ${statusColors[status]}`}
           >
-            <Heart
-              className={`h-5 w-5 ${
-                isFavorite ? "fill-red-500 text-red-500" : "text-gray-500"
-              }`}
-            />
-          </button>
-        )}
-
-        {/* Status badge */}
-        {isNew && (
-          <Badge className="absolute left-3 top-3" variant="secondary">
-            New
+            {statusLabel[status]}
           </Badge>
-        )}
+          <button
+            aria-label="Save property"
+            className="absolute top-3 right-3 rounded-full p-1.5 bg-white/80 hover:bg-white text-muted-foreground hover:text-red-500 transition-colors"
+          >
+            <HeartIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="font-semibold text-lg truncate group-hover:text-primary">
+              {title}
+            </h3>
+          </div>
+          <p className="text-xl font-bold mb-2">{formatPrice(price)}</p>
+          <p className="text-muted-foreground text-sm mb-4 truncate">{address}</p>
+          
+          <div className="flex justify-between text-sm">
+            <div className="flex items-center gap-1" title="Bedrooms">
+              <BedIcon className="h-4 w-4 text-muted-foreground" />
+              <span>{bedrooms}</span>
+            </div>
+            <div className="flex items-center gap-1" title="Bathrooms">
+              <BathIcon className="h-4 w-4 text-muted-foreground" />
+              <span>{bathrooms}</span>
+            </div>
+            <div className="flex items-center gap-1" title="Square Footage">
+              <RulerIcon className="h-4 w-4 text-muted-foreground" />
+              <span>{area} sqft</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <CardContent className="p-4">
-        <div className="mb-2 flex items-baseline justify-between">
-          <h3 className="text-xl font-semibold tracking-tight">
-            {formatCurrency(price)}
-            {type === "rent" && <span className="text-sm text-muted-foreground">/mo</span>}
-          </h3>
-          {pricePerSqFt && (
-            <p className="text-sm text-muted-foreground">
-              {formatCurrency(pricePerSqFt)}/sqft
-            </p>
-          )}
-        </div>
-        
-        <Link href={`/properties/${id}`} className="hover:underline">
-          <h4 className="mb-1 font-medium">{title}</h4>
-        </Link>
-        
-        <div className="mb-4 flex items-center text-sm text-muted-foreground">
-          <MapPin className="mr-1 h-3.5 w-3.5" />
-          <span>{address}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <div className="flex items-center text-sm">
-            <BedDouble className="mr-1 h-4 w-4" />
-            <span className="mr-3">{bedrooms} Beds</span>
-          </div>
-          <div className="flex items-center text-sm">
-            <Bath className="mr-1 h-4 w-4" />
-            <span className="mr-3">{bathrooms} Baths</span>
-          </div>
-          <div className="flex items-center text-sm">
-            <SquareFeet className="mr-1 h-4 w-4" />
-            <span>{squareFeet} sqft</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    </Link>
   );
 }

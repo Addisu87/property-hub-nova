@@ -1,118 +1,114 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-import { Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import ThemeToggle from "@/components/ThemeToggle";
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
-const NavLinks = [
-  { name: "Buy", href: "/properties/buy" },
-  { name: "Rent", href: "/properties/rent" },
-  { name: "Sell", href: "/sell" },
-  { name: "Loans", href: "/loans" },
-  { name: "Agents", href: "/agents" },
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/properties", label: "Properties" },
+  { href: "/mortgage", label: "Mortgage" },
+  { href: "/agents", label: "Find Agents" },
 ];
 
 export default function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-2xl font-bold text-primary">EstateHub</span>
-        </Link>
+    <header
+      className={`sticky top-0 z-50 w-full transition-all duration-200 ${
+        isScrolled
+          ? "bg-background/80 backdrop-blur-md shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-6 md:gap-10">
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-xl font-bold">RealEstate</span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex md:gap-x-6">
-          <NavigationMenu>
-            <NavigationMenuList>
-              {NavLinks.map((link) => (
-                <NavigationMenuItem key={link.name}>
-                  <Link href={link.href} legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        "text-base font-medium",
-                        pathname === link.href
-                          ? "text-primary"
-                          : "text-foreground"
-                      )}
-                    >
-                      {link.name}
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
-        </div>
-
-        {/* Right side items */}
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <div className="hidden md:block">
-            <Button variant="outline" className="mr-2">
-              Sign In
-            </Button>
-            <Button>Sign Up</Button>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile navigation */}
-      {mobileMenuOpen && (
-        <div className="md:hidden">
-          <div className="space-y-1 px-4 pb-5 pt-2">
-            {NavLinks.map((link) => (
+          <nav className="hidden md:flex gap-6">
+            {navLinks.map((link) => (
               <Link
-                key={link.name}
+                key={link.href}
                 href={link.href}
-                className={cn(
-                  "block py-2 font-medium",
+                className={`text-sm font-medium transition-colors hover:text-primary ${
                   pathname === link.href
                     ? "text-primary"
-                    : "text-foreground hover:text-primary"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
+                    : "text-muted-foreground"
+                }`}
               >
-                {link.name}
+                {link.label}
               </Link>
             ))}
-            <div className="mt-5 flex flex-col space-y-3">
-              <Button variant="outline">Sign In</Button>
-              <Button>Sign Up</Button>
-            </div>
-          </div>
+          </nav>
         </div>
-      )}
+
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <div className="hidden md:flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/sign-in">Sign In</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/sign-up">Sign Up</Link>
+            </Button>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <nav className="flex flex-col gap-4 mt-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                      pathname === link.href
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <div className="flex flex-col gap-2 mt-4">
+                  <Button variant="outline" asChild>
+                    <Link href="/sign-in">Sign In</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/sign-up">Sign Up</Link>
+                  </Button>
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
     </header>
   );
 }
