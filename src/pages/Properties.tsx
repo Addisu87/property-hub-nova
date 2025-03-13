@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Property } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { MapPinIcon, BedIcon, BathIcon, RulerIcon, HeartIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import PropertyFilters, { FilterValues } from "@/components/PropertyFilters";
 
 // Mock property data
 const mockProperties: Property[] = [
@@ -208,12 +209,112 @@ const PropertyCard = ({ property }: { property: Property }) => {
 const Properties = () => {
   const [loading, setLoading] = useState(false);
   const [properties, setProperties] = useState<Property[]>(mockProperties);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>(mockProperties);
+  
+  const [filters, setFilters] = useState<FilterValues>({
+    location: "",
+    propertyType: "",
+    priceRange: [0, 1000000],
+    bedrooms: "",
+    bathrooms: "",
+  });
+
+  const applyFilters = () => {
+    setLoading(true);
+    
+    // Simulate loading delay
+    setTimeout(() => {
+      const filtered = mockProperties.filter((property) => {
+        // Filter by property type
+        if (filters.propertyType && property.type !== filters.propertyType) {
+          return false;
+        }
+        
+        // Filter by price range
+        if (
+          property.price < filters.priceRange[0] ||
+          property.price > filters.priceRange[1]
+        ) {
+          return false;
+        }
+        
+        // Filter by bedrooms
+        if (
+          filters.bedrooms &&
+          property.bedrooms < parseInt(filters.bedrooms, 10)
+        ) {
+          return false;
+        }
+        
+        // Filter by bathrooms
+        if (
+          filters.bathrooms &&
+          property.bathrooms < parseInt(filters.bathrooms, 10)
+        ) {
+          return false;
+        }
+        
+        // Filter by location (case-insensitive partial match)
+        if (
+          filters.location &&
+          !property.address
+            .toLowerCase()
+            .includes(filters.location.toLowerCase())
+        ) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      setFilteredProperties(filtered);
+      setLoading(false);
+    }, 500);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      location: "",
+      propertyType: "",
+      priceRange: [0, 1000000],
+      bedrooms: "",
+      bathrooms: "",
+    });
+    setFilteredProperties(mockProperties);
+  };
+
+  // Apply filters when filters change
+  useEffect(() => {
+    // Don't apply filters on initial load
+    if (JSON.stringify(filters) !== JSON.stringify({
+      location: "",
+      propertyType: "",
+      priceRange: [0, 1000000],
+      bedrooms: "",
+      bathrooms: "",
+    })) {
+      applyFilters();
+    }
+  }, [filters]);
 
   const loadMore = () => {
     setLoading(true);
     // Simulate loading more properties
     setTimeout(() => {
-      setProperties([...properties, ...mockProperties.slice(0, 3)]);
+      // Only add more properties if there are no filters applied
+      const isDefaultFilters = 
+        !filters.location && 
+        !filters.propertyType && 
+        filters.bedrooms === "" && 
+        filters.bathrooms === "" &&
+        filters.priceRange[0] === 0 && 
+        filters.priceRange[1] === 1000000;
+      
+      if (isDefaultFilters) {
+        const newProperties = [...properties, ...mockProperties.slice(0, 3)];
+        setProperties(newProperties);
+        setFilteredProperties(newProperties);
+      }
       setLoading(false);
     }, 1000);
   };
@@ -222,35 +323,50 @@ const Properties = () => {
     <div className="container mx-auto py-8 px-4 md:px-6">
       <h1 className="text-3xl md:text-4xl font-bold mb-6">Available Properties</h1>
       
-      <div className="property-grid mb-10">
-        {properties.map((property) => (
-          <PropertyCard key={property.id} property={property} />
-        ))}
-        {loading &&
-          Array(3)
-            .fill(0)
-            .map((_, index) => (
-              <div key={`skeleton-${index}`} className="rounded-lg overflow-hidden border">
-                <Skeleton className="h-48 w-full" />
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <div className="flex justify-between pt-2">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-5 w-20" />
+      <PropertyFilters 
+        filters={filters}
+        onChange={setFilters}
+        onReset={resetFilters}
+        onSearch={applyFilters}
+      />
+      
+      {filteredProperties.length === 0 && !loading ? (
+        <div className="text-center py-10">
+          <h3 className="text-xl font-semibold mb-2">No properties found</h3>
+          <p className="text-muted-foreground mb-6">Try adjusting your filters to find properties.</p>
+          <Button onClick={resetFilters}>Reset Filters</Button>
+        </div>
+      ) : (
+        <div className="property-grid mb-10">
+          {filteredProperties.map((property) => (
+            <PropertyCard key={property.id} property={property} />
+          ))}
+          {loading &&
+            Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <div key={`skeleton-${index}`} className="rounded-lg overflow-hidden border">
+                  <Skeleton className="h-48 w-full" />
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                    <div className="flex justify-between pt-2">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-5 w-20" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-      </div>
+              ))}
+        </div>
+      )}
       
       <div className="flex justify-center">
         <Button
           onClick={loadMore}
           variant="outline"
           size="lg"
-          disabled={loading}
+          disabled={loading || filteredProperties.length !== properties.length}
         >
           {loading ? "Loading..." : "Load More Properties"}
         </Button>
