@@ -8,14 +8,14 @@ interface PropertyListProps {
   properties: Property[];
   loading: boolean;
   onLoadMore: () => void;
-  allPropertiesLoaded: boolean;
+  hasMoreProperties: boolean;
 }
 
 const PropertyList = ({ 
   properties, 
   loading, 
   onLoadMore, 
-  allPropertiesLoaded 
+  hasMoreProperties 
 }: PropertyListProps) => {
   if (properties.length === 0 && !loading) {
     return (
@@ -52,14 +52,16 @@ const PropertyList = ({
       </div>
       
       <div className="flex justify-center">
-        <Button
-          onClick={onLoadMore}
-          variant="outline"
-          size="lg"
-          disabled={loading || allPropertiesLoaded}
-        >
-          {loading ? "Loading..." : "Load More Properties"}
-        </Button>
+        {hasMoreProperties && (
+          <Button
+            onClick={onLoadMore}
+            variant="outline"
+            size="lg"
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Load More Properties"}
+          </Button>
+        )}
       </div>
     </>
   );

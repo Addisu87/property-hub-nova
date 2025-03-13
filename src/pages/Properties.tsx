@@ -1,4 +1,6 @@
 
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import PropertyFilters from "@/components/PropertyFilters";
@@ -39,6 +41,11 @@ const Properties = () => {
     }, 1000);
   };
 
+  const hasMoreProperties = 
+    !loading && 
+    filteredProperties.length > 0 && 
+    filteredProperties.length % 3 === 0;
+
   const noResults = filteredProperties.length === 0 && !loading;
 
   return (
@@ -63,7 +70,7 @@ const Properties = () => {
           properties={filteredProperties}
           loading={loading}
           onLoadMore={loadMore}
-          allPropertiesLoaded={filteredProperties.length !== properties.length}
+          hasMoreProperties={hasMoreProperties}
         />
       )}
     </div>

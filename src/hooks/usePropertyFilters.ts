@@ -1,4 +1,6 @@
 
+"use client";
+
 import { useState, useEffect } from "react";
 import { Property } from "@/lib/types";
 import { FilterValues } from "@/components/PropertyFilters";
@@ -82,13 +84,15 @@ export const usePropertyFilters = (properties: Property[]) => {
   // Apply filters when filters change
   useEffect(() => {
     // Don't apply filters on initial load
-    if (JSON.stringify(filters) !== JSON.stringify({
+    const defaultFilters = {
       location: "",
       propertyType: "",
       priceRange: [0, 1000000],
       bedrooms: "",
       bathrooms: "",
-    })) {
+    };
+    
+    if (JSON.stringify(filters) !== JSON.stringify(defaultFilters)) {
       applyFilters();
     }
   }, [filters, properties]);
